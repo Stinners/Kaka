@@ -167,13 +167,27 @@ namespace KakaLexer
             }
         }
 
+        /* This scans something that looks initally like an identifier
+           It can be either: a keyword - if it ends with a colon 
+                             a reserved word - if it's in the 'reserved' dictionary 
+                             an identifier - otherwise 
+        */
         private void ScanIdentifier()
         {
-            while (Char.IsLetter(Peek)) Advance();
+            TokenType type;
+
+            while (Char.IsLetterOrDigit(Peek)) Advance();
 
             string text = source.Substring(start, current - start);
-            TokenType type = reserved.TryGetValue(text, out TokenType kwType) ? kwType : TokenType.IDENTIFIER;
-            AddToken(type);
+            if (Match(':'))
+            {
+                type = TokenType.KEYWORD;
+            } 
+            else if (!reserved.TryGetValue(text, out type))
+            {
+                type = TokenType.IDENTIFIER;
+            }
+            AddToken(type, text);
         }
 
         private void ScanNewLine() 

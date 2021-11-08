@@ -90,8 +90,34 @@ namespace LexerTest
 
             List<Token> resultTokens = lexer.Lex();
 
-            //Assert.Equal(input, resultTokens[0].lexeme);
             Assert.Equal(expected, resultTokens[0].literal);
+        }
+
+        [Theory]
+        [InlineData("foo:", "foo")]
+        [InlineData("foo:bar", "foo")]
+        public void Keywords_are_Lexed(string input, string expected)
+        {
+            var lexer = new Lexer(input);
+            
+            List<Token> resultsTokens = lexer.Lex();
+
+            Token kwToken = resultsTokens[0];
+            Assert.Equal(TokenType.KEYWORD, kwToken.type);
+            Assert.Equal(expected, kwToken.literal);
+        }
+
+        [Fact]
+        public void Identifier_After_Keyword_is_Lexed()
+        {
+            string expected = "bar";
+            var lexer = new Lexer($"foo:{expected}");
+            
+            List<Token> resultsTokens = lexer.Lex();
+
+            Token token = resultsTokens[1];
+            Assert.Equal(TokenType.IDENTIFIER, token.type);
+            Assert.Equal(expected, token.lexeme);
         }
     }
 }
