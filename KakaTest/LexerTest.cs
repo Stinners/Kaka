@@ -9,15 +9,15 @@ namespace LexerTest
 {
     public class TokenTest
     {
+
+
+        /* =========== Helper Functions ===================*/
+
         static List<Token> Tokens(TokenType[] types)
         {
-            var results = new List<Token>();
-            foreach (var type in types) 
-            {
-                results.Add(new Token(type, "", null, 0));
-            }
-            results.Add(new Token(TokenType.EOF, "", null, 0));
-            return results;
+            return types.Select(type => new Token(type, "", null, 0))
+                        .Append(new Token(TokenType.EOF, "", null, 0))
+                        .ToList();
         }
 
         static bool CheckTypes(List<Token> left, List<Token> right)
@@ -27,13 +27,16 @@ namespace LexerTest
 
         private static string StripQuotes(string input) => input.Trim(new char[] {'\"'});
 
+        /* =========== Tests ===================*/
+
         [Theory]
         [InlineData("!", new TokenType[] {TokenType.BANG})]
-        [InlineData("!=", new TokenType[] {TokenType.BANG_EQUAL})]
+        [InlineData(".", new TokenType[] {TokenType.DOT})]
         [InlineData("", new TokenType[] {})]
-        [InlineData("<=", new TokenType[] {TokenType.LESS_EQUAL})]
+        [InlineData("<= !=", new TokenType[] {TokenType.LESS_EQUAL, TokenType.BANG_EQUAL})]
         [InlineData("[ * ]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.STAR, TokenType.RIGHT_BRACKET})]
         [InlineData("[*]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.STAR, TokenType.RIGHT_BRACKET})]
+        [InlineData("class 3.12 \n \"test\"", new TokenType[] {TokenType.CLASS, TokenType.FLOAT, TokenType.NEWLINE, TokenType.STRING})]
         public void Token_Types_Are_Correct(string input, TokenType[] tokens)
         {
             var lexer = new Lexer(input);
@@ -46,6 +49,7 @@ namespace LexerTest
 
         [Theory]
         [InlineData("self", new TokenType[] {TokenType.SELF})]
+        [InlineData("using", new TokenType[] {TokenType.USING})]
         [InlineData("foo", new TokenType[] {TokenType.IDENTIFIER})]
         [InlineData("selfish", new TokenType[] {TokenType.IDENTIFIER})]
         [InlineData("selfish class", new TokenType[] {TokenType.IDENTIFIER, TokenType.CLASS})]
@@ -61,7 +65,6 @@ namespace LexerTest
 
             Assert.True(CheckTypes(testTokens, resultTokens));
         }
-
 
         [Theory]
         [InlineData("\"self\"", new TokenType[] {TokenType.STRING})]
@@ -118,6 +121,64 @@ namespace LexerTest
             Token token = resultsTokens[1];
             Assert.Equal(TokenType.IDENTIFIER, token.type);
             Assert.Equal(expected, token.lexeme);
+        }
+
+        [Theory]
+        [InlineData("3.14", 3.14)]
+        [InlineData(".14", 0.14)]
+        [InlineData("3.", 3.0)]
+        public void Doubles_are_Parsed(string input, double expected)
+        {
+            var lexer = new Lexer(input);
+
+            List<Token> resultsTokens = lexer.Lex();
+
+            Token token = resultsTokens[0];
+            Assert.Equal(TokenType.FLOAT, token.type);
+            Assert.Equal(expected, token.literal);
+        }
+
+        [Theory]
+        [InlineData("3", 3)]
+        [InlineData("10", 10)]
+        public void Integers_are_Parsed(string input, long expected)
+        {
+            var lexer = new Lexer(input);
+
+            List<Token> resultsTokens = lexer.Lex();
+
+            Token token = resultsTokens[0];
+            Assert.Equal(TokenType.INTEGER, token.type);
+            Assert.Equal(expected, token.literal);
+        }
+        
+        [Theory]
+        [InlineData(".3.")]
+        [InlineData("1..0")]
+        [InlineData("1.0.")]
+        public void Only_1_Dot_Allowed(string input)
+        {
+            var lexer = new Lexer(input);
+
+            Assert.Throws<Exception>(() => lexer.Lex());
+        }
+
+        // We need some text at the end of these since the lexer won't capture 
+        // the last newline of the file
+        [Theory]
+        [InlineData("\ntext", 1)]
+        [InlineData("\n   text", 4)]
+        [InlineData("  \n   text", 4)]
+        [InlineData("\n   \ttext", 5)]
+        public void Counts_Spaces_After_Newlines(string input, int expected)
+        {
+            var lexer = new Lexer(input);
+
+            Token token = lexer.Lex()[0];
+
+            Assert.Equal(expected, token.lexeme.Length);
+            Assert.Equal(2, token.line);
+            Assert.Equal(TokenType.NEWLINE, token.type);
         }
     }
 }

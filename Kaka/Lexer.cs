@@ -21,10 +21,11 @@ namespace KakaLexer
         LESS, LESS_EQUAL,
 
         // Atomic Literals 
-        IDENTIFIER, STRING, NUMBER, KEYWORD, RESERVED,
+        IDENTIFIER, STRING,  KEYWORD, RESERVED,
+        INTEGER, FLOAT,
 
         // Language Keywords 
-        CLASS, SELF,
+        CLASS, SELF, USING,
 
         // Whitespace
         NEWLINE,
@@ -64,8 +65,9 @@ namespace KakaLexer
 
         private readonly Dictionary<string, TokenType> reserved = new Dictionary<string, TokenType>
         {
-            {  "self",    TokenType.SELF },
-            {  "class",  TokenType.CLASS },
+            {  "self",  TokenType.SELF },
+            {  "class", TokenType.CLASS },
+            {  "using", TokenType.USING },
         };
         private bool IsNotAtEnd { get { return current < source.Length; } }
 
@@ -109,6 +111,11 @@ namespace KakaLexer
                 return false;
             }
         }
+
+        private bool IsDigitOrDot(char c) => Char.IsDigit(c) || c == '.';
+
+        private bool IdentifierStart(char c) => Char.IsLetter(c) || c == '_';
+        private bool IdentifierInner(char c) => IdentifierStart(c) || Char.IsDigit(c);
 
 
         private void ScanToken()
@@ -158,15 +165,23 @@ namespace KakaLexer
                 case '"': ScanString(); break;
 
                 default:
-                    if (Char.IsLetter(c)) 
+                    if (IdentifierStart(c)) 
                     {
-                        // TODO handle keywords
                         ScanIdentifier();
+                    } 
+                    else if (IsDigitOrDot(c))
+                    {
+                        ScanNumber(c);
+                    }
+                    else
+                    {
+                        throw new Exception($"Invalid Character: {c}");
                     }
                     break;
             }
         }
 
+        /* Todo allow identifiers with internal dots
         /* This scans something that looks initally like an identifier
            It can be either: a keyword - if it ends with a colon 
                              a reserved word - if it's in the 'reserved' dictionary 
@@ -176,7 +191,7 @@ namespace KakaLexer
         {
             TokenType type;
 
-            while (Char.IsLetterOrDigit(Peek)) Advance();
+            while (IdentifierInner(Peek)) Advance();
 
             string text = source.Substring(start, current - start);
             if (Match(':'))
@@ -188,6 +203,39 @@ namespace KakaLexer
                 type = TokenType.IDENTIFIER;
             }
             AddToken(type, text);
+        }
+
+        // TODO support exponential notation 
+        private void ScanNumber(char c)
+        {
+            bool isFloat = c == '.';
+            while (IsDigitOrDot(Peek))
+            {
+                if (Peek == '.')
+                {
+                    if (!isFloat) isFloat = true;
+                    else throw new Exception("Invalid Number literal");
+                }
+                Advance();
+            }
+
+            string text = source.Substring(start, current - start);
+            if (!isFloat && Int64.TryParse(text, out long intNumber)) 
+            {
+                AddToken(TokenType.INTEGER, intNumber);
+            }
+            else if (Double.TryParse(text, out double floatNumber))
+            {
+                AddToken(TokenType.FLOAT, floatNumber);
+            }
+            else if (text == ".")
+            {
+                AddToken(TokenType.DOT);
+            }
+            else 
+            {
+                throw new Exception("Could not parse number");
+            }
         }
 
         private void ScanNewLine() 
