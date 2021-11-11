@@ -9,8 +9,6 @@ namespace LexerTest
 {
     public class TokenTest
     {
-
-
         /* =========== Helper Functions ===================*/
 
         static List<Token> Tokens(TokenType[] types)
@@ -34,9 +32,13 @@ namespace LexerTest
         [InlineData(".", new TokenType[] {TokenType.DOT})]
         [InlineData("", new TokenType[] {})]
         [InlineData("<= !=", new TokenType[] {TokenType.LESS_EQUAL, TokenType.BANG_EQUAL})]
+        [InlineData("@{", new TokenType[] {TokenType.AT_LEFT_BRACE})]
         [InlineData("[ * ]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.STAR, TokenType.RIGHT_BRACKET})]
         [InlineData("[*]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.STAR, TokenType.RIGHT_BRACKET})]
         [InlineData("class 3.12 \n \"test\"", new TokenType[] {TokenType.CLASS, TokenType.FLOAT, TokenType.NEWLINE, TokenType.STRING})]
+        [InlineData("#", new TokenType[] {TokenType.COMMENT})]
+        [InlineData("#test", new TokenType[] {TokenType.COMMENT})]
+        [InlineData("#test\n   test", new TokenType[] {TokenType.COMMENT, TokenType.NEWLINE, TokenType.IDENTIFIER})]
         public void Token_Types_Are_Correct(string input, TokenType[] tokens)
         {
             var lexer = new Lexer(input);
@@ -45,6 +47,17 @@ namespace LexerTest
             var resultTokens = lexer.Lex();
 
             Assert.True(CheckTypes(testTokens, resultTokens));
+        }
+
+        [Theory]
+        [InlineData("$")]
+        [InlineData("?")]
+        public void Invalid_Tokens_Throw(string input)
+        {
+            var lexer = new Lexer(input);
+
+            Assert.Throws<Exception>(() => lexer.Lex());
+            
         }
 
         [Theory]

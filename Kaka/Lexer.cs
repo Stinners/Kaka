@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 namespace KakaLexer
 {
-
     public enum TokenType 
     {
         // Single character tokens 
@@ -19,6 +18,7 @@ namespace KakaLexer
         EQUAL, EQUAL_EQUAL,
         GREATER, GREATER_EQUAL,
         LESS, LESS_EQUAL,
+        AT_LEFT_BRACE,
 
         // Atomic Literals 
         IDENTIFIER, STRING,  KEYWORD, RESERVED,
@@ -27,8 +27,11 @@ namespace KakaLexer
         // Language Keywords 
         CLASS, SELF, USING,
 
-        // Whitespace
-        NEWLINE,
+        // Comments 
+        COMMENT,
+
+        // Newlines 
+        NEWLINE, INDENT, DEDENT,
 
         EOF,
     }
@@ -51,6 +54,7 @@ namespace KakaLexer
 
     public class Lexer 
     {
+        private Stack<int> indentationStack = new Stack<int>(new int[] {0});
         private readonly string source;
         private readonly List<Token> tokens = new List<Token>();
 
@@ -151,6 +155,17 @@ namespace KakaLexer
                 case '>':
                     AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
                     break;
+                case '@': 
+                    if (Match('{'))
+                    {
+                        AddToken(TokenType.AT_LEFT_BRACE);
+                    }
+                    else 
+                    {
+                        throw new Exception($"Invalid Character: {c}");
+                    }
+                    break;
+                case '#': ScanComment(); break;
 
                 // Whitespace 
                 case ' ':  break;
@@ -181,7 +196,7 @@ namespace KakaLexer
             }
         }
 
-        /* Todo allow identifiers with internal dots
+        // TODO allow identifiers with internal dots
         /* This scans something that looks initally like an identifier
            It can be either: a keyword - if it ends with a colon 
                              a reserved word - if it's in the 'reserved' dictionary 
@@ -238,6 +253,8 @@ namespace KakaLexer
             }
         }
 
+        // Possibly make a IndentStack class, that takes a Token and returns if it's an indent or a dedent
+        // This can then be reused in the parser class
         private void ScanNewLine() 
         {
             line++;
@@ -275,6 +292,16 @@ namespace KakaLexer
                 throw new Exception("Unterminated String Literal");
             }
 
+        }
+
+        private void ScanComment()
+        {
+            while (Peek != '\n' && IsNotAtEnd)
+            {
+                Advance();
+            }
+
+            AddToken(TokenType.COMMENT);
         }
 
         public List<Token> Lex()
