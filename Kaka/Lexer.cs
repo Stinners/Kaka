@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using System.Collections.Generic;
 
 namespace KakaLexer
@@ -10,18 +9,14 @@ namespace KakaLexer
         LEFT_PAREN, RIGHT_PAREN,
         LEFT_BRACE, RIGHT_BRACE,
         LEFT_BRACKET, RIGHT_BRACKET,
-        PLUS, MINUS, SLASH, STAR, DOT,
-        COMMA, SEMICOLON, PIPE,
+        COMMA, SEMICOLON, PIPE, DOT,
 
         // One or two character tokens 
-        BANG, BANG_EQUAL,
-        EQUAL, EQUAL_EQUAL,
-        GREATER, GREATER_EQUAL,
-        LESS, LESS_EQUAL,
         AT_LEFT_BRACE,
+        OPERATOR,
 
         // Atomic Literals 
-        IDENTIFIER, STRING,  KEYWORD, RESERVED,
+        IDENTIFIER, STRING, KEYWORD, RESERVED,
         INTEGER, FLOAT,
 
         // Language Keywords 
@@ -54,7 +49,6 @@ namespace KakaLexer
 
     public class Lexer 
     {
-        private Stack<int> indentationStack = new Stack<int>(new int[] {0});
         private readonly string source;
         private readonly List<Token> tokens = new List<Token>();
 
@@ -73,6 +67,11 @@ namespace KakaLexer
             {  "class", TokenType.CLASS },
             {  "using", TokenType.USING },
         };
+
+        // Operators are one or two character sequences of the following 
+        // Characters
+        private bool isOperatorChar(char c) => "=><+-^!*/".Contains(c);
+
         private bool IsNotAtEnd { get { return current < source.Length; } }
 
         private char Advance() => source[current++];
@@ -134,27 +133,10 @@ namespace KakaLexer
                 case '}': AddToken(TokenType.RIGHT_BRACE); break;
                 case '[': AddToken(TokenType.LEFT_BRACKET); break;
                 case ']': AddToken(TokenType.RIGHT_BRACKET); break;
-                case ',': AddToken(TokenType.COMMA); break;
-                case '+': AddToken(TokenType.PLUS); break;
-                case '-': AddToken(TokenType.MINUS); break;
-                case '/': AddToken(TokenType.SLASH); break;
-                case '*': AddToken(TokenType.STAR); break;
                 case ';': AddToken(TokenType.SEMICOLON); break;
                 case '|': AddToken(TokenType.PIPE); break;
 
                 // One or two character tokens
-                case '!':
-                    AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
-                    break;
-                case '=':
-                    AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
-                    break;
-                case '<':
-                    AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
-                    break;
-                case '>':
-                    AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
-                    break;
                 case '@': 
                     if (Match('{'))
                     {
@@ -180,7 +162,12 @@ namespace KakaLexer
                 case '"': ScanString(); break;
 
                 default:
-                    if (IdentifierStart(c)) 
+                    if (isOperatorChar(c))
+                    {
+                        if (isOperatorChar(Peek)) Advance();
+                        AddToken(TokenType.OPERATOR);
+                    }
+                    else if (IdentifierStart(c)) 
                     {
                         ScanIdentifier();
                     } 

@@ -28,13 +28,13 @@ namespace LexerTest
         /* =========== Tests ===================*/
 
         [Theory]
-        [InlineData("!", new TokenType[] {TokenType.BANG})]
+        [InlineData("!", new TokenType[] {TokenType.OPERATOR})]
         [InlineData(".", new TokenType[] {TokenType.DOT})]
         [InlineData("", new TokenType[] {})]
-        [InlineData("<= !=", new TokenType[] {TokenType.LESS_EQUAL, TokenType.BANG_EQUAL})]
+        [InlineData("<= !=", new TokenType[] {TokenType.OPERATOR, TokenType.OPERATOR})]
         [InlineData("@{", new TokenType[] {TokenType.AT_LEFT_BRACE})]
-        [InlineData("[ * ]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.STAR, TokenType.RIGHT_BRACKET})]
-        [InlineData("[*]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.STAR, TokenType.RIGHT_BRACKET})]
+        [InlineData("[ * ]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.OPERATOR, TokenType.RIGHT_BRACKET})]
+        [InlineData("[*]", new TokenType[] {TokenType.LEFT_BRACKET, TokenType.OPERATOR, TokenType.RIGHT_BRACKET})]
         [InlineData("class 3.12 \n \"test\"", new TokenType[] {TokenType.CLASS, TokenType.FLOAT, TokenType.NEWLINE, TokenType.STRING})]
         [InlineData("#", new TokenType[] {TokenType.COMMENT})]
         [InlineData("#test", new TokenType[] {TokenType.COMMENT})]
