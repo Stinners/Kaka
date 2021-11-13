@@ -40,10 +40,10 @@ namespace KakaLexer
     {
         public readonly TokenType type;
         public readonly String lexeme;
-        public readonly object literal;
+        public readonly object? literal;
         public readonly int line;
 
-        public Token(TokenType type, string lexeme, object literal, int line)
+        public Token(TokenType type, string lexeme, object? literal, int line)
         {
             this.type = type;
             this.lexeme = lexeme;
@@ -79,7 +79,7 @@ namespace KakaLexer
 
         private void AddToken(TokenType type) => AddToken(type, null);
 
-        private void AddToken(TokenType type, object literal)
+        private void AddToken(TokenType type, object? literal)
         {
             string text = source.Substring(start, current - start);
             tokens.Add(new Token(type, text, literal, line));
