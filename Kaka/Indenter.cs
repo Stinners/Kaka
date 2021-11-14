@@ -14,6 +14,7 @@ seen level
 
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using KakaLexer;
@@ -81,21 +82,30 @@ namespace KakaIndenter
         // Catches changes in indentation and converts to the appropriate token,
         // Also raises en exception on invalid changes in indentation
         // i.e. Enforces rules 2-4 above
-        private Token ConvertToIndentDedent(Token token)
+        private List<Token> ConvertToIndentDedent(Token token)
         {
+            var tokens = new List<Token>();
+
             int spaces = token.lexeme.Length - 1;
             if (spaces > indentStack.Peek()) 
             {
                 indentStack.Push(spaces);
-                token = NewType(token, TokenType.INDENT);
+                tokens.Add(NewType(token, TokenType.INDENT));
             }
             else if (spaces < indentStack.Peek())
             {
                 if (!indentStack.Contains(spaces)) throw new Exception($"Invalid Dedent line ${token.line}");
-                while (indentStack.Peek() != spaces) indentStack.Pop();
-                token = NewType(token, TokenType.DEDENT);
+                while (indentStack.Peek() != spaces)
+                {
+                    indentStack.Pop();
+                    tokens.Add(NewType(token, TokenType.DEDENT));
+                }
             }
-            return token;
+            else
+            {
+                tokens.Add(token);
+            }
+            return tokens;
         }
 
         private void ProcessNewLineToken(Token token)
@@ -105,9 +115,9 @@ namespace KakaIndenter
             if (Peek.type == TokenType.COMMENT) return;
 
             PreventSpaceTabMixing(token);
-            token = ConvertToIndentDedent(token);
+            var tokens = ConvertToIndentDedent(token);
 
-            output.Add(token);
+            output.AddRange(tokens);
         }
 
         public List<Token> Indent() 

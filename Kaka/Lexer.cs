@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using KakaIndenter;
+
 namespace KakaLexer
 {
     public enum TokenType 
@@ -299,7 +301,11 @@ namespace KakaLexer
                 ScanToken();
             }
             tokens.Add(new Token(TokenType.EOF, "", null, line));
-            return tokens;
+
+            var indenter = new Indenter(tokens);
+            List<Token> results = indenter.Indent();
+
+            return results;
         }
     }
 }

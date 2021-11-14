@@ -4,10 +4,9 @@ using System.Linq;
 using Xunit;
 
 using KakaLexer;
-using KakaIndenter;
 
-// Todo, this should probably form a single interface with the Lexer, rather than needing to call
-// each individually
+/* Note this doesn;t actually call Indenter directly, it just tests the functionality
+   of the lexer that is provided by the indenter class */
 namespace IndenterTest 
 {
     public class IndenterTests 
@@ -28,11 +27,8 @@ namespace IndenterTest
         private void CheckInput(string input, TokenType[] expected)
         {
             var lexer = new Lexer(input);
-            var lexed = lexer.Lex();
-            var indenter = new Indenter(lexed);
+            var resultTokens = lexer.Lex();
             List<Token> expectedTokens = Tokens(expected);
-
-            var resultTokens = indenter.Indent();
 
             Assert.True(CheckTypes(resultTokens, expectedTokens));
         }
@@ -55,15 +51,14 @@ namespace IndenterTest
         public void Rejects_Mixed_Tabs_and_Spaces(string input)
         {
             var lexer = new Lexer(input);
-            var lexed = lexer.Lex();
-            var indenter = new Indenter(lexed);
 
-            Assert.Throws<Exception>(() => indenter.Indent());
+            Assert.Throws<Exception>(() => lexer.Lex());
         }
 
         [Theory]
         [InlineData("\n.\n   .", new TokenType[] { TokenType.NEWLINE, TokenType.DOT, TokenType.INDENT, TokenType.DOT})]
         [InlineData("\n  \n.\n   .", new TokenType[] { TokenType.NEWLINE, TokenType.DOT, TokenType.INDENT, TokenType.DOT})]
+        [InlineData("\n\t\t\n.\n   .", new TokenType[] { TokenType.NEWLINE, TokenType.DOT, TokenType.INDENT, TokenType.DOT})]
         public void Handles_Indents(string input, TokenType[] expected)
         {
             CheckInput(input, expected);
@@ -71,6 +66,8 @@ namespace IndenterTest
 
         [Theory]
         [InlineData("\n    .\n.", new TokenType[] { TokenType.INDENT, TokenType.DOT, TokenType.DEDENT, TokenType.DOT})]
+        [InlineData("\n .\n  .\n .", new TokenType[] { TokenType.INDENT, TokenType.DOT, TokenType.INDENT, TokenType.DOT, TokenType.DEDENT, TokenType.DOT})]
+        [InlineData("\n .\n  .\n.", new TokenType[] { TokenType.INDENT, TokenType.DOT, TokenType.INDENT, TokenType.DOT, TokenType.DEDENT, TokenType.DEDENT, TokenType.DOT})]
         public void Handles_Valid_Dedent(string input, TokenType[] expected)
         {
             CheckInput(input, expected);
@@ -81,10 +78,8 @@ namespace IndenterTest
         public void Rejects_Invalid_Dedent(string input)
         {
             var lexer = new Lexer(input);
-            var lexed = lexer.Lex();
-            var indenter = new Indenter(lexed);
 
-            Assert.Throws<Exception>(() => indenter.Indent());
+            Assert.Throws<Exception>(() => lexer.Lex());
         }
     }
 }
