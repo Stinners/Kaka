@@ -10,15 +10,16 @@ namespace KakaParser
     public class Parser
     {
         private readonly List<Token> tokens;
-        private List<Expression> output = new List<Expression>();
+        private List<Node> output = new List<Node>();
         private int current = 0;
+        private int start = 0;
 
         public Parser(List<Token> tokens)
         {
             this.tokens = tokens;
         }
 
-        private bool IsNotAtEnd { get { return current > tokens.Count; } }
+        private bool IsNotAtEnd { get { return current < tokens.Count; } }
 
         private Token Advance() {
             return IsNotAtEnd 
@@ -36,8 +37,39 @@ namespace KakaParser
             return isMatch;
         }
 
-        public List<Expression> Parse()
+        #region TerminalLiterals
+
+        private void ParseInteger(Token token)
         {
+            output.Add(new Integer((long)(token.literal!)));
+        }
+
+        private void ParseDouble(Token token)
+        {
+            output.Add(new KDouble((double)(token.literal!)));
+        }
+
+        #endregion
+
+        private void ParseToken()
+        {
+            Token token = Advance();
+            switch (token.type)
+            {
+                case TokenType.INTEGER: ParseInteger(token); break;
+                case TokenType.FLOAT: ParseDouble(token); break;
+                default: break;
+            }
+        }
+
+        public List<Node> Parse()
+        {
+            while (IsNotAtEnd)
+            {
+                start = current;
+                ParseToken();
+
+            }
             return output;
         }
     }

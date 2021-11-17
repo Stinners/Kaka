@@ -140,6 +140,7 @@ namespace LexerTest
         [InlineData("3.14", 3.14)]
         [InlineData(".14", 0.14)]
         [InlineData("3.", 3.0)]
+        [InlineData("-3.", -3.0)]
         public void Doubles_are_Parsed(string input, double expected)
         {
             var lexer = new Lexer(input);

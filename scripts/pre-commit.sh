@@ -4,9 +4,10 @@
 echo ">>>> Running Tests"
 if !(dotnet test KakaTest > /dev/null)
 then
-    echo ">>>> The above tests failed: Will not commit"
+    echo ">>>> The above tests failed: Aborting commit"
     exit 1
 fi
+echo ">>>> Tests Passed"
 
 # An example hook script to verify what is about to be committed.
 # Called by "git commit" with no arguments.  The hook should

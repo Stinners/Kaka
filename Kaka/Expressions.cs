@@ -19,15 +19,15 @@ using System.Collections.Generic;
     public record Expression(ExprType type, Expression expr) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitExpression(this); };
 
     // The three message types
-    public record Unary(Expression reciever, Message message) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitUnary(this); };
-    public record Binary(Expression reciever, Message message, Expression right) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitBinary(this); };
-    public record Keyword(Expression reciever, List<(KeywordMessage, Expression)> keywordPairs) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitKeyword(this); };
+    public record Unary(AbstractExpr reciever, Message message) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitUnary(this); };
+    public record Binary(AbstractExpr reciever, Message message, AbstractExpr right) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitBinary(this); };
+    public record Keyword(AbstractExpr reciever, List<(KeywordMessage, Expression)> keywordPairs) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitKeyword(this); };
 
     public record Identifier(string Name) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitIdentifier(this); };
 
     // Literals 
-    public record Double(double Value) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitDouble(this); };
-    public record Integer(int Value) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitInteger(this); };
+    public record KDouble(double Value) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitDouble(this); };
+    public record Integer(long Value) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitInteger(this); };
     public record KString(string Value) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitString(this); };
     public record KList(List<object> Value) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitList(this); };
     public record KDict(Dictionary<object, object> Value) : AbstractExpr { public override R Accept<R>(Visitor<R> visitor) => visitor.VisitDict(this); };
@@ -64,7 +64,7 @@ using System.Collections.Generic;
 
         R VisitIdentifier(Identifier identifier);
 
-        R VisitDouble(Double kdouble);
+        R VisitDouble(KDouble kdouble);
         R VisitInteger(Integer integer);
         R VisitString(KString kstring);
         R VisitList(KList list);

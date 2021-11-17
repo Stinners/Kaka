@@ -166,7 +166,13 @@ namespace KakaLexer
                 default:
                     if (isOperatorChar(c))
                     {
-                        if (isOperatorChar(Peek)) Advance();
+                        // A minus sign followed immediatly by a number is a negative number literal,
+                        // not a n operator
+                        if (IsDigitOrDot(Peek))
+                        {
+                            ScanNumber(c);
+                        }
+                        else if (isOperatorChar(Peek)) Advance();
                         AddToken(TokenType.OPERATOR);
                     }
                     else if (IdentifierStart(c)) 
@@ -309,4 +315,3 @@ namespace KakaLexer
         }
     }
 }
-
