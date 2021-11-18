@@ -20,11 +20,7 @@ namespace ParserTest
             return results;
         }
 
-        [Theory]
-        [InlineData(1)]
-        [InlineData(3)]
-        [InlineData(7)]
-        public void Integers_Parse_Correctly(int pairKey)
+        private void TestSinglePair(int pairKey)
         {
             var pairs = new TestPairs();
             (string input, Node expected) = pairs.pairs[pairKey];
@@ -34,16 +30,36 @@ namespace ParserTest
         }
 
         [Theory]
+        [InlineData(1)]
+        [InlineData(3)]
+        [InlineData(7)]
+        public void Integers_Parse_Correctly(int pairKey)
+        {
+            TestSinglePair(pairKey);
+        }
+
+        [Theory]
         [InlineData(4)]
         [InlineData(5)]
         [InlineData(6)]
         public void Doubles_Parse_Correctly(int pairKey)
         {
-            var pairs = new TestPairs();
-            (string input, Node expected) = pairs.pairs[pairKey];
-            var result = Parse(input)[0];
+            TestSinglePair(pairKey);
+        }
 
-            Assert.Equal(result, expected);
+        [Theory]
+        [InlineData(8)]
+        [InlineData(9)]
+        public void Strings_Parse_Correctly(int pairKey)
+        {
+            TestSinglePair(pairKey);
+        }
+
+        [Theory]
+        [InlineData(10)]
+        public void Identifiers_Parse_Correctly(int pairKey)
+        {
+            TestSinglePair(pairKey);
         }
 
     }
@@ -71,6 +87,10 @@ namespace ParserTest
             {6, ("-1.", new KDouble(-1.0))},
             {7, ("-1", new Integer(-1))},
 
+            {8, ("\"test\"", new KString("test"))},
+            {9, ("\"\"", new KString(""))},
+
+            {10, ("test", new Identifier("test"))},
         };
 
     }

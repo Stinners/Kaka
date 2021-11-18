@@ -49,6 +49,16 @@ namespace KakaParser
             output.Add(new KDouble((double)(token.literal!)));
         }
 
+        private void ParseString(Token token)
+        {
+            output.Add(new KString((string)(token.literal!)));
+        }
+
+        private void ParseIndentifier(Token token)
+        {
+            output.Add(new Identifier((string)(token.literal!)));
+        }
+
         #endregion
 
         private void ParseToken()
@@ -58,6 +68,8 @@ namespace KakaParser
             {
                 case TokenType.INTEGER: ParseInteger(token); break;
                 case TokenType.FLOAT: ParseDouble(token); break;
+                case TokenType.STRING: ParseString(token); break;
+                case TokenType.IDENTIFIER: ParseIndentifier(token); break;
                 default: break;
             }
         }
